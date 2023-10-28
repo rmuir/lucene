@@ -111,7 +111,7 @@ final class PanamaVectorUtilSupport implements VectorUtilSupport {
 
   // the way FMA should work! if available use it, otherwise fall back to mul/add
   private static FloatVector fma(FloatVector a, FloatVector b, FloatVector c) {
-    if (HAS_FMA) {
+    if (HAS_FAST_FMA) {
       return a.fma(b, c);
     } else {
       return a.mul(b).add(c);
