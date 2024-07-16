@@ -17,6 +17,11 @@
 
 package org.apache.lucene.util;
 
+import static java.lang.foreign.ValueLayout.JAVA_BYTE;
+import static java.lang.foreign.ValueLayout.JAVA_INT;
+
+import java.lang.foreign.*;
+import java.lang.invoke.MethodHandle;
 import org.apache.lucene.internal.vectorization.VectorUtilSupport;
 import org.apache.lucene.internal.vectorization.VectorizationProvider;
 
@@ -167,6 +172,89 @@ public final class VectorUtil {
       u[i] += v[i];
     }
   }
+
+  /** Ankur: Hacky code start */
+  public static final AddressLayout POINTER =
+      ValueLayout.ADDRESS.withTargetLayout(MemoryLayout.sequenceLayout(JAVA_BYTE));
+
+  private static final Linker LINKER = Linker.nativeLinker();
+  private static final SymbolLookup SYMBOL_LOOKUP;
+
+  static {
+    System.loadLibrary("dotProduct");
+    SymbolLookup loaderLookup = SymbolLookup.loaderLookup();
+    SYMBOL_LOOKUP = name -> loaderLookup.find(name).or(() -> LINKER.defaultLookup().find(name));
+  }
+
+  static final FunctionDescriptor dot8sDesc =
+      FunctionDescriptor.of(JAVA_INT, POINTER, POINTER, JAVA_INT);
+
+  static final MethodHandle dot8sMH =
+      SYMBOL_LOOKUP.find("dot8s").map(addr -> LINKER.downcallHandle(addr, dot8sDesc)).orElse(null);
+
+  static final MethodHandle neonVdot8sMH =
+      SYMBOL_LOOKUP
+          .find("vdot8s_neon")
+          .map(addr -> LINKER.downcallHandle(addr, dot8sDesc))
+          .orElse(null);
+
+  static final MethodHandle sveVdot8sMH =
+      SYMBOL_LOOKUP
+          .find("vdot8s_sve")
+          .map(addr -> LINKER.downcallHandle(addr, dot8sDesc))
+          .orElse(null);
+
+  static final MethodHandle sveVdot8s$MH() {
+    if (sveVdot8sMH == null) {
+      // SVE instructions not available, fallback to NEON
+      return neonVdot8s$MH();
+    }
+    return sveVdot8sMH;
+  }
+
+  static final MethodHandle neonVdot8s$MH() {
+    return requireNonNull(neonVdot8sMH, "vdot8s_neon");
+  }
+
+  static final MethodHandle dot8s$MH() {
+    return requireNonNull(dot8sMH, "dot8s");
+  }
+
+  static <T> T requireNonNull(T obj, String symbolName) {
+    if (obj == null) {
+      throw new UnsatisfiedLinkError("unresolved symbol: " + symbolName);
+    }
+    return obj;
+  }
+
+  public static int sveVdot8s(MemorySegment vec1, MemorySegment vec2, int limit) {
+    var mh$ = sveVdot8s$MH();
+    try {
+      return (int) mh$.invokeExact(vec1, vec2, limit);
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  public static int neonVdot8s(MemorySegment vec1, MemorySegment vec2, int limit) {
+    var mh$ = neonVdot8s$MH();
+    try {
+      return (int) mh$.invokeExact(vec1, vec2, limit);
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  public static int dot8s(MemorySegment vec1, MemorySegment vec2, int limit) {
+    var mh$ = dot8s$MH();
+    try {
+      return (int) mh$.invokeExact(vec1, vec2, limit);
+    } catch (Throwable ex$) {
+      throw new AssertionError("should not reach here", ex$);
+    }
+  }
+
+  /** Ankur: Hacky code end * */
 
   /**
    * Dot product computed over signed bytes.
