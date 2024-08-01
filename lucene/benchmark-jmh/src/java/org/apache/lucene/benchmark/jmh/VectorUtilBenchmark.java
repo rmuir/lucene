@@ -104,18 +104,6 @@ public class VectorUtilBenchmark {
 
   @Benchmark
   @Fork(jvmArgsPrepend = {"--add-modules=jdk.incubator.vector"})
-  public int sveVdot8s() {
-    return VectorUtil.sveVdot8s(nativeBytesA, nativeBytesB, size);
-  }
-
-  @Benchmark
-  @Fork(jvmArgsPrepend = {"--add-modules=jdk.incubator.vector"})
-  public int neonVdot8s() {
-    return VectorUtil.neonVdot8s(nativeBytesA, nativeBytesB, size);
-  }
-
-  @Benchmark
-  @Fork(jvmArgsPrepend = {"--add-modules=jdk.incubator.vector"})
   public int dot8s() {
     return VectorUtil.dot8s(nativeBytesA, nativeBytesB, size);
   }

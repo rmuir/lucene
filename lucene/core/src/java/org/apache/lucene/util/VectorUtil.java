@@ -204,51 +204,24 @@ public final class VectorUtil {
           .map(addr -> LINKER.downcallHandle(addr, dot8sDesc))
           .orElse(null);
 
-  static final MethodHandle sveVdot8s$MH() {
-    if (sveVdot8sMH == null) {
-      // SVE instructions not available, fallback to NEON
-      return neonVdot8s$MH();
-    }
-    return sveVdot8sMH;
-  }
+  /* chosen C implementation */
+  static final MethodHandle dot8sImpl;
 
-  static final MethodHandle neonVdot8s$MH() {
-    return requireNonNull(neonVdot8sMH, "vdot8s_neon");
-  }
-
-  static final MethodHandle dot8s$MH() {
-    return requireNonNull(dot8sMH, "dot8s");
-  }
-
-  static <T> T requireNonNull(T obj, String symbolName) {
-    if (obj == null) {
-      throw new UnsatisfiedLinkError("unresolved symbol: " + symbolName);
-    }
-    return obj;
-  }
-
-  public static int sveVdot8s(MemorySegment vec1, MemorySegment vec2, int limit) {
-    var mh$ = sveVdot8s$MH();
-    try {
-      return (int) mh$.invokeExact(vec1, vec2, limit);
-    } catch (Throwable ex$) {
-      throw new AssertionError("should not reach here", ex$);
-    }
-  }
-
-  public static int neonVdot8s(MemorySegment vec1, MemorySegment vec2, int limit) {
-    var mh$ = neonVdot8s$MH();
-    try {
-      return (int) mh$.invokeExact(vec1, vec2, limit);
-    } catch (Throwable ex$) {
-      throw new AssertionError("should not reach here", ex$);
+  static {
+    if (sveVdot8sMH != null) {
+      dot8sImpl = sveVdot8sMH;
+    } else if (neonVdot8sMH != null) {
+      dot8sImpl = neonVdot8sMH;
+    } else if (dot8sMH != null) {
+      dot8sImpl = dot8sMH;
+    } else {
+      throw new RuntimeException("c code was not linked!");
     }
   }
 
   public static int dot8s(MemorySegment vec1, MemorySegment vec2, int limit) {
-    var mh$ = dot8s$MH();
     try {
-      return (int) mh$.invokeExact(vec1, vec2, limit);
+      return (int) dot8sImpl.invokeExact(vec1, vec2, limit);
     } catch (Throwable ex$) {
       throw new AssertionError("should not reach here", ex$);
     }

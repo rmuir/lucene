@@ -1,7 +1,7 @@
 // dotProduct.c
+#include <stdint.h>
 
 #include <stdio.h>
-#include <arm_neon.h>
 
 #ifdef __ARM_ACLE
 #include <arm_acle.h>
@@ -70,7 +70,10 @@ int32_t vdot8s_sve(int8_t *vec1, int8_t *vec2, int32_t limit) {
     }
     return result;
 }
-#endif
+#endif /* SVE code */
+
+#if defined(__ARM_NEON)
+#include <arm_neon.h>
 
 // https://developer.arm.com/architectures/instruction-sets/intrinsics/
 int32_t vdot8s_neon(int8_t* vec1, int8_t* vec2, int32_t limit) {
@@ -118,6 +121,7 @@ int32_t vdot8s_neon(int8_t* vec1, int8_t* vec2, int32_t limit) {
     }
     return result;
 }
+#endif /* __ARM_NEON */
 
 int32_t dot8s(int8_t* vec1, int8_t* vec2, int32_t limit) {
     int32_t result = 0;
