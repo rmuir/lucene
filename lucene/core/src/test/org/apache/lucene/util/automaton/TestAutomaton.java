@@ -1685,7 +1685,7 @@ public class TestAutomaton extends LuceneTestCase {
 
   public void testMakeCharSetEmpty() {
     Automaton expected = Automata.makeEmpty();
-    Automaton actual = Automata.makeCharSet(new int[] {});
+    Automaton actual = Automata.makeCharSet(Collections.emptyList());
     assertTrue(AutomatonTestUtil.sameLanguage(expected, actual));
     assertTrue(actual.isDeterministic());
     assertEquals(0, actual.getNumStates());
@@ -1694,7 +1694,7 @@ public class TestAutomaton extends LuceneTestCase {
 
   public void testMakeCharSetOne() {
     Automaton expected = Automata.makeChar('a');
-    Automaton actual = Automata.makeCharSet(new int[] {'a'});
+    Automaton actual = Automata.makeCharSet(List.of((int) 'a'));
     assertTrue(AutomatonTestUtil.sameLanguage(expected, actual));
     assertTrue(actual.isDeterministic());
     assertEquals(2, actual.getNumStates());
@@ -1703,7 +1703,7 @@ public class TestAutomaton extends LuceneTestCase {
 
   public void testMakeCharSetTwo() {
     Automaton expected = Operations.union(Automata.makeChar('a'), Automata.makeChar('A'));
-    Automaton actual = Automata.makeCharSet(new int[] {'a', 'A'});
+    Automaton actual = Automata.makeCharSet(List.of((int) 'a', (int) 'A'));
     assertTrue(AutomatonTestUtil.sameLanguage(expected, actual));
     assertTrue(actual.isDeterministic());
     assertEquals(2, actual.getNumStates());
@@ -1712,7 +1712,7 @@ public class TestAutomaton extends LuceneTestCase {
 
   public void testMakeCharSetDups() {
     Automaton expected = Automata.makeChar('a');
-    Automaton actual = Automata.makeCharSet(new int[] {'a', 'a', 'a'});
+    Automaton actual = Automata.makeCharSet(List.of((int) 'a', (int) 'a', (int) 'a'));
     assertTrue(AutomatonTestUtil.sameLanguage(expected, actual));
     assertTrue(actual.isDeterministic());
     assertEquals(2, actual.getNumStates());

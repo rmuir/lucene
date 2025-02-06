@@ -32,6 +32,8 @@ package org.apache.lucene.util.automaton;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.BytesRefIterator;
@@ -142,26 +144,29 @@ public final class Automata {
   }
 
   /** Returns a new minimal automaton that accepts any of the provided codepoints */
-  public static Automaton makeCharSet(int[] codepoints) {
+  public static Automaton makeCharSet(List<Integer> codepoints) {
     return makeCharClass(codepoints, codepoints);
   }
 
   /** Returns a new minimal automaton that accepts any of the codepoint ranges */
-  public static Automaton makeCharClass(int[] starts, int[] ends) {
+  public static Automaton makeCharClass(List<Integer> starts, List<Integer> ends) {
     Objects.requireNonNull(starts);
     Objects.requireNonNull(ends);
-    if (starts.length != ends.length) {
+    if (starts.size() != ends.size()) {
       throw new IllegalArgumentException("starts must match ends");
     }
-    if (starts.length == 0) {
+    if (starts.isEmpty()) {
       return makeEmpty();
     }
     Automaton a = new Automaton();
     int s1 = a.createState();
     int s2 = a.createState();
     a.setAccept(s2, true);
-    for (int i = 0; i < starts.length; i++) {
-      a.addTransition(s1, s2, starts[i], ends[i]);
+
+    Iterator<Integer> startIterator = starts.iterator();
+    Iterator<Integer> endIterator = ends.iterator();
+    while (startIterator.hasNext() && endIterator.hasNext()) {
+      a.addTransition(s1, s2, startIterator.next(), endIterator.next());
     }
     a.finishState();
     return a;

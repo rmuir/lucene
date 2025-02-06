@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
-import org.apache.lucene.util.IntsRef;
 
 /**
  * Regular Expression extension to <code>Automaton</code>.
@@ -454,7 +453,7 @@ public class RegExp {
   public final int min, max, digits;
 
   /** Extents for range type expressions */
-  public final int from[], to[];
+  public final List<Integer> from, to;
 
   // Parser variables
   private final String originalString;
@@ -519,7 +518,7 @@ public class RegExp {
     to = e.to;
   }
 
-  RegExp(
+  private RegExp(
       int flags,
       Kind kind,
       RegExp exp1,
@@ -529,8 +528,8 @@ public class RegExp {
       int min,
       int max,
       int digits,
-      int from[],
-      int to[]) {
+      List<Integer> from,
+      List<Integer> to) {
     this.originalString = null;
     this.kind = kind;
     this.flags = flags;
@@ -546,18 +545,18 @@ public class RegExp {
   }
 
   // Simplified construction of container nodes
-  static RegExp newContainerNode(int flags, Kind kind, RegExp exp1, RegExp exp2) {
+  private static RegExp newContainerNode(int flags, Kind kind, RegExp exp1, RegExp exp2) {
     return new RegExp(flags, kind, exp1, exp2, null, 0, 0, 0, 0, null, null);
   }
 
   // Simplified construction of repeating nodes
-  static RegExp newRepeatingNode(int flags, Kind kind, RegExp exp, int min, int max) {
+  private static RegExp newRepeatingNode(int flags, Kind kind, RegExp exp, int min, int max) {
     return new RegExp(flags, kind, exp, null, null, 0, min, max, 0, null, null);
   }
 
   // Simplified construction of leaf nodes
-  static RegExp newLeafNode(
-      int flags, Kind kind, String s, int c, int min, int max, int digits, int from[], int to[]) {
+  private static RegExp newLeafNode(
+      int flags, Kind kind, String s, int c, int min, int max, int digits, List<Integer> from, List<Integer> to) {
     return new RegExp(flags, kind, null, null, s, c, min, max, digits, from, to);
   }
 
@@ -651,7 +650,7 @@ public class RegExp {
         }
         break;
       case REGEXP_CHAR_RANGE:
-        a = Automata.makeCharRange(from[0], to[0]);
+        a = Automata.makeCharRange(from.get(0), to.get(0));
         break;
       case REGEXP_CHAR_CLASS:
         a = Automata.makeCharClass(from, to);
@@ -696,19 +695,19 @@ public class RegExp {
     return a;
   }
 
-  private int[] toCaseInsensitiveChar(int codepoint) {
+  private List<Integer> toCaseInsensitiveChar(int codepoint) {
     // For now we only work with ASCII characters
     if (codepoint > 128) {
-      return new int[] {codepoint};
+      return List.of(codepoint);
     }
     int altCase =
         Character.isLowerCase(codepoint)
             ? Character.toUpperCase(codepoint)
             : Character.toLowerCase(codepoint);
     if (altCase != codepoint) {
-      return new int[] {codepoint, altCase};
+      return List.of(codepoint, altCase);
     } else {
-      return new int[] {codepoint};
+      return List.of(codepoint);
     }
   }
 
@@ -717,7 +716,7 @@ public class RegExp {
 
     Iterator<Integer> iter = s.codePoints().iterator();
     while (iter.hasNext()) {
-      int points[] = toCaseInsensitiveChar(iter.next());
+      List<Integer> points = toCaseInsensitiveChar(iter.next());
       list.add(Automata.makeCharSet(points));
     }
     return Operations.concatenate(list);
@@ -750,7 +749,7 @@ public class RegExp {
     return b.toString();
   }
 
-  void toStringBuilder(StringBuilder b) {
+  private void toStringBuilder(StringBuilder b) {
     switch (kind) {
       case REGEXP_UNION:
         b.append("(");
@@ -800,16 +799,16 @@ public class RegExp {
         b.append("\\").appendCodePoint(c);
         break;
       case REGEXP_CHAR_RANGE:
-        b.append("[\\").appendCodePoint(from[0]).append("-\\").appendCodePoint(to[0]).append("]");
+        b.append("[\\").appendCodePoint(from.get(0)).append("-\\").appendCodePoint(to.get(0)).append("]");
         break;
       case REGEXP_CHAR_CLASS:
         b.append("[");
-        for (int i = 0; i < from.length; i++) {
-          if (from[i] == to[i]) {
-            b.append("\\").appendCodePoint(from[i]);
+        for (int i = 0; i < from.size(); i++) {
+          if (from.get(i) == to.get(i)) {
+            b.append("\\").appendCodePoint(from.get(i));
           } else {
-            b.append("\\").appendCodePoint(from[i]);
-            b.append("-\\").appendCodePoint(to[i]);
+            b.append("\\").appendCodePoint(from.get(i));
+            b.append("-\\").appendCodePoint(to.get(i));
           }
         }
         b.append("]");
@@ -848,7 +847,7 @@ public class RegExp {
     return b.toString();
   }
 
-  void toStringTree(StringBuilder b, String indent) {
+  private void toStringTree(StringBuilder b, String indent) {
     switch (kind) {
       // binary
       case REGEXP_UNION:
@@ -899,18 +898,18 @@ public class RegExp {
         b.append(indent);
         b.append(kind);
         b.append(" from=");
-        b.appendCodePoint(from[0]);
+        b.appendCodePoint(from.get(0));
         b.append(" to=");
-        b.appendCodePoint(to[0]);
+        b.appendCodePoint(to.get(0));
         b.append('\n');
         break;
       case REGEXP_CHAR_CLASS:
         b.append(indent);
         b.append(kind);
         b.append(" starts=");
-        b.append(new IntsRef(from, 0, from.length));
+        b.append(toHexString(from));
         b.append(" ends=");
-        b.append(new IntsRef(to, 0, to.length));
+        b.append(toHexString(to));
         b.append('\n');
         break;
       case REGEXP_ANYCHAR:
@@ -951,6 +950,20 @@ public class RegExp {
     }
   }
 
+  /** prints like <code>[U+002A U+FD72 U+1FFFF]</code> */
+  private StringBuilder toHexString(List<Integer> list) {
+    StringBuilder sb = new StringBuilder();
+    sb.append('[');
+    for (Integer codepoint : list) {
+      if (sb.length() > 1) {
+        sb.append(' ');
+      }
+      sb.append(String.format("U+%04X", codepoint));
+    }
+    sb.append(']');
+    return sb;
+  }
+
   /** Returns set of automaton identifiers that occur in this regular expression. */
   public Set<String> getIdentifiers() {
     HashSet<String> set = new HashSet<>();
@@ -958,7 +971,7 @@ public class RegExp {
     return set;
   }
 
-  void getIdentifiers(Set<String> set) {
+  private void getIdentifiers(Set<String> set) {
     switch (kind) {
       case REGEXP_UNION:
       case REGEXP_CONCATENATION:
@@ -989,11 +1002,11 @@ public class RegExp {
     }
   }
 
-  static RegExp makeUnion(int flags, RegExp exp1, RegExp exp2) {
+  private static RegExp makeUnion(int flags, RegExp exp1, RegExp exp2) {
     return newContainerNode(flags, Kind.REGEXP_UNION, exp1, exp2);
   }
 
-  static RegExp makeConcatenation(int flags, RegExp exp1, RegExp exp2) {
+  private static RegExp makeConcatenation(int flags, RegExp exp1, RegExp exp2) {
     if ((exp1.kind == Kind.REGEXP_CHAR || exp1.kind == Kind.REGEXP_STRING)
         && (exp2.kind == Kind.REGEXP_CHAR || exp2.kind == Kind.REGEXP_STRING))
       return makeString(flags, exp1, exp2);
@@ -1024,27 +1037,27 @@ public class RegExp {
     return makeString(flags, b.toString());
   }
 
-  static RegExp makeIntersection(int flags, RegExp exp1, RegExp exp2) {
+  private static RegExp makeIntersection(int flags, RegExp exp1, RegExp exp2) {
     return newContainerNode(flags, Kind.REGEXP_INTERSECTION, exp1, exp2);
   }
 
-  static RegExp makeOptional(int flags, RegExp exp) {
+  private static RegExp makeOptional(int flags, RegExp exp) {
     return newContainerNode(flags, Kind.REGEXP_OPTIONAL, exp, null);
   }
 
-  static RegExp makeRepeat(int flags, RegExp exp) {
+  private static RegExp makeRepeat(int flags, RegExp exp) {
     return newContainerNode(flags, Kind.REGEXP_REPEAT, exp, null);
   }
 
-  static RegExp makeRepeat(int flags, RegExp exp, int min) {
+  private static RegExp makeRepeat(int flags, RegExp exp, int min) {
     return newRepeatingNode(flags, Kind.REGEXP_REPEAT_MIN, exp, min, 0);
   }
 
-  static RegExp makeRepeat(int flags, RegExp exp, int min, int max) {
+  private static RegExp makeRepeat(int flags, RegExp exp, int min, int max) {
     return newRepeatingNode(flags, Kind.REGEXP_REPEAT_MINMAX, exp, min, max);
   }
 
-  static RegExp makeComplement(int flags, RegExp exp) {
+  private static RegExp makeComplement(int flags, RegExp exp) {
     return newContainerNode(flags, Kind.REGEXP_COMPLEMENT, exp, null);
   }
 
@@ -1054,33 +1067,34 @@ public class RegExp {
    * @deprecated Will be removed in Lucene 11
    */
   @Deprecated
-  static RegExp makeDeprecatedComplement(int flags, RegExp exp) {
+  private static RegExp makeDeprecatedComplement(int flags, RegExp exp) {
     return newContainerNode(flags, Kind.REGEXP_DEPRECATED_COMPLEMENT, exp, null);
   }
 
-  static RegExp makeChar(int flags, int c) {
+  private static RegExp makeChar(int flags, int c) {
     return newLeafNode(flags, Kind.REGEXP_CHAR, null, c, 0, 0, 0, null, null);
   }
 
-  static RegExp makeCharRange(int flags, int from, int to) {
+  private static RegExp makeCharRange(int flags, int from, int to) {
     if (from > to)
       throw new IllegalArgumentException(
           "invalid range: from (" + from + ") cannot be > to (" + to + ")");
     return newLeafNode(
-        flags, Kind.REGEXP_CHAR_RANGE, null, 0, 0, 0, 0, new int[] {from}, new int[] {to});
+        flags, Kind.REGEXP_CHAR_RANGE, null, 0, 0, 0, 0, List.of(from), List.of(to));
   }
 
-  static RegExp makeCharClass(int flags, int from[], int to[]) {
-    for (int i = 0; i < from.length; i++) {
-      if (from[i] > to[i]) {
+  private static RegExp makeCharClass(int flags, List<Integer> from, List<Integer> to) {
+    assert from.size() == to.size();
+    for (int i = 0; i < from.size(); i++) {
+      if (from.get(i) > to.get(i)) {
         throw new IllegalArgumentException(
-            "invalid range: from (" + from[i] + ") cannot be > to (" + to[i] + ")");
+            "invalid range: from (" + from.get(i) + ") cannot be > to (" + to.get(i) + ")");
       }
     }
     return newLeafNode(flags, Kind.REGEXP_CHAR_CLASS, null, 0, 0, 0, 0, from, to);
   }
 
-  static RegExp makeAnyChar(int flags) {
+  private static RegExp makeAnyChar(int flags) {
     return newContainerNode(flags, Kind.REGEXP_ANYCHAR, null, null);
   }
 
@@ -1088,19 +1102,19 @@ public class RegExp {
     return newContainerNode(flags, Kind.REGEXP_EMPTY, null, null);
   }
 
-  static RegExp makeString(int flags, String s) {
+  private static RegExp makeString(int flags, String s) {
     return newLeafNode(flags, Kind.REGEXP_STRING, s, 0, 0, 0, 0, null, null);
   }
 
-  static RegExp makeAnyString(int flags) {
+  private static RegExp makeAnyString(int flags) {
     return newContainerNode(flags, Kind.REGEXP_ANYSTRING, null, null);
   }
 
-  static RegExp makeAutomaton(int flags, String s) {
+  private static RegExp makeAutomaton(int flags, String s) {
     return newLeafNode(flags, Kind.REGEXP_AUTOMATON, s, 0, 0, 0, 0, null, null);
   }
 
-  static RegExp makeInterval(int flags, int min, int max, int digits) {
+  private static RegExp makeInterval(int flags, int min, int max, int digits) {
     return newLeafNode(flags, Kind.REGEXP_INTERVAL, null, 0, min, max, digits, null, null);
   }
 
@@ -1132,16 +1146,16 @@ public class RegExp {
     return (flags & flag) != 0;
   }
 
-  final RegExp parseUnionExp() throws IllegalArgumentException {
+  private final RegExp parseUnionExp() throws IllegalArgumentException {
     return iterativeParseExp(this::parseInterExp, () -> match('|'), RegExp::makeUnion);
   }
 
-  final RegExp parseInterExp() throws IllegalArgumentException {
+  private final RegExp parseInterExp() throws IllegalArgumentException {
     return iterativeParseExp(
         this::parseConcatExp, () -> check(INTERSECTION) && match('&'), RegExp::makeIntersection);
   }
 
-  final RegExp parseConcatExp() throws IllegalArgumentException {
+  private final RegExp parseConcatExp() throws IllegalArgumentException {
     return iterativeParseExp(
         this::parseRepeatExp,
         () -> (more() && !peek(")|") && (!check(INTERSECTION) || !peek("&"))),
@@ -1157,7 +1171,7 @@ public class RegExp {
     RegExp get(int int1, RegExp exp1, RegExp exp2);
   }
 
-  final RegExp iterativeParseExp(
+  private final RegExp iterativeParseExp(
       Supplier<RegExp> gather, BooleanSupplier stop, MakeRegexGroup associativeReduce)
       throws IllegalArgumentException {
     RegExp result = gather.get();
@@ -1168,7 +1182,7 @@ public class RegExp {
     return result;
   }
 
-  final RegExp parseRepeatExp() throws IllegalArgumentException {
+  private final RegExp parseRepeatExp() throws IllegalArgumentException {
     RegExp e = parseComplExp();
     while (peek("?*+{")) {
       if (match('?')) e = makeOptional(flags, e);
@@ -1197,13 +1211,13 @@ public class RegExp {
     return e;
   }
 
-  final RegExp parseComplExp() throws IllegalArgumentException {
+  private final RegExp parseComplExp() throws IllegalArgumentException {
     if (check(DEPRECATED_COMPLEMENT) && match('~'))
       return makeDeprecatedComplement(flags, parseComplExp());
     else return parseCharClassExp();
   }
 
-  final RegExp parseCharClassExp() throws IllegalArgumentException {
+  private final RegExp parseCharClassExp() throws IllegalArgumentException {
     if (match('[')) {
       boolean negate = false;
       if (match('^')) negate = true;
@@ -1214,9 +1228,9 @@ public class RegExp {
     } else return parseSimpleExp();
   }
 
-  final RegExp parseCharClasses() throws IllegalArgumentException {
-    var starts = new ArrayList<Integer>();
-    var ends = new ArrayList<Integer>();
+  private final RegExp parseCharClasses() throws IllegalArgumentException {
+    ArrayList<Integer> starts = new ArrayList<Integer>();
+    ArrayList<Integer> ends = new ArrayList<Integer>();
 
     do {
       // look for escape
@@ -1253,14 +1267,11 @@ public class RegExp {
         return makeCharRange(flags, starts.get(0), ends.get(0));
       }
     } else {
-      return makeCharClass(
-          flags,
-          starts.stream().mapToInt(Integer::intValue).toArray(),
-          ends.stream().mapToInt(Integer::intValue).toArray());
+      return makeCharClass(flags, starts, ends);
     }
   }
 
-  void expandPreDefined(List<Integer> starts, List<Integer> ends) {
+  private void expandPreDefined(List<Integer> starts, List<Integer> ends) {
     if (peek("\\")) {
       // escape
       starts.add((int) '\\');
@@ -1331,22 +1342,19 @@ public class RegExp {
     }
   }
 
-  final RegExp matchPredefinedCharacterClass() {
+  private final RegExp matchPredefinedCharacterClass() {
     // See https://docs.oracle.com/javase/tutorial/essential/regex/pre_char_classes.html
     if (match('\\') && peek("\\ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")) {
-      var starts = new ArrayList<Integer>();
-      var ends = new ArrayList<Integer>();
+      ArrayList<Integer> starts = new ArrayList<Integer>();
+      ArrayList<Integer> ends = new ArrayList<Integer>();
       expandPreDefined(starts, ends);
-      return makeCharClass(
-          flags,
-          starts.stream().mapToInt(Integer::intValue).toArray(),
-          ends.stream().mapToInt(Integer::intValue).toArray());
+      return makeCharClass(flags, starts, ends);
     }
 
     return null;
   }
 
-  final RegExp parseSimpleExp() throws IllegalArgumentException {
+  private final RegExp parseSimpleExp() throws IllegalArgumentException {
     if (match('.')) return makeAnyChar(flags);
     else if (check(EMPTY) && match('#')) return makeEmpty(flags);
     else if (check(ANYSTRING) && match('@')) return makeAnyString(flags);
@@ -1402,7 +1410,7 @@ public class RegExp {
     }
   }
 
-  final int parseCharExp() throws IllegalArgumentException {
+  private final int parseCharExp() throws IllegalArgumentException {
     match('\\');
     return next();
   }
