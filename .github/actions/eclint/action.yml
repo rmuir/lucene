@@ -24,10 +24,9 @@ runs:
       cache: false
   - name: Install eclint
     if: steps.cache-eclint.outputs.cache-hit != 'true'
-    run: go install gitlab.com/greut/eclint/cmd/eclint@${ECLINT_VERSION}
+    run: GOBIN=${HOME}/.local/bin go install gitlab.com/greut/eclint/cmd/eclint@${ECLINT_VERSION}
     shell: bash
     env:
-      GOBIN: ~/.local/bin
       ECLINT_VERSION: ${{ inputs.eclint-version }}
   - name: Configure gradle
     run: echo "lucene.tool.eclint=eclint" >> build-options.local.properties
