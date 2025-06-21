@@ -31,6 +31,3 @@ runs:
   - name: Configure gradle
     run: echo "lucene.tool.eclint=eclint" >> build-options.local.properties
     shell: bash
-  - name: Self-test
-    run: eclint -version
-    shell: bash
