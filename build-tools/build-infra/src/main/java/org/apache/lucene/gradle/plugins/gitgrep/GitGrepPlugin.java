@@ -76,7 +76,7 @@ public class GitGrepPlugin implements Plugin<Project> {
             });
 
     tasks
-        .matching(task -> task.getName().equals("check"))
+        .matching(task -> task.getName().equals("test"))
         .configureEach(
             task -> {
               task.dependsOn(applyGitGrepRulesTask);
