@@ -76,7 +76,7 @@ jobs:
       - uses: ./.github/actions/prepare-for-build
 
       - name: Run gradle tests
-        run: ./gradlew test "-Ptask.times=true" --max-workers 2
+        run: ./gradlew applyGitGrep
 
       - name: List automatically-initialized gradle.properties
         run: cat gradle.properties
