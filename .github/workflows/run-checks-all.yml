@@ -90,14 +90,14 @@ jobs:
       - name: Configure tmpfs (Linux)
         if: ${{ runner.os == 'linux' }}
         run: |
-          echo "tests.workdir=${XDG_RUNTIME_DIR}/lucene" >> build-options.local.properties
+          echo "tests.workDir=${XDG_RUNTIME_DIR}/lucene" >> build-options.local.properties
 
       - name: Configure tmpfs (MacOS)
         if: ${{ runner.os == 'macOS' }}
         run: |
           mkdir /tmp/tmpfs
           sudo mount_tmpfs -o noowners -s 1g /tmp/tmpfs
-          echo "tests.workdir=/tmp/tmpfs/lucene" >> build-options.local.properties
+          echo "tests.workDir=/tmp/tmpfs/lucene" >> build-options.local.properties
 
       - name: Run gradle tests
         run: ./gradlew test "-Ptask.times=true" --max-workers 2
