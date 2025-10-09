@@ -90,6 +90,8 @@ jobs:
       - name: Print Linux System information
         if: ${{ runner.os == 'macOS' }}
         run: |
+          sudo mkdir /tmpfs
+          sudo mount_tmpfs -o size=1g tmpfs /tmpfs
           df -k
           mount
           env
