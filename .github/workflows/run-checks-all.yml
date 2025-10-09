@@ -100,7 +100,7 @@ jobs:
         env:
           # Set to the defaults to override the "CI"-based logic that would enable C2
           # we can't afford C2
-          TEST_JVMS_ARGS: "-XX:TieredStopAtLevel=1 -XX:+UseParallelGC -XX:ActiveProcessorCount=1"
+          TEST_JVM_ARGS: "-XX:TieredStopAtLevel=1 -XX:+UseParallelGC -XX:ActiveProcessorCount=1"
 
       - name: List automatically-initialized gradle.properties
         run: cat gradle.properties
