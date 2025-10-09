@@ -87,6 +87,13 @@ jobs:
       - name: Configure tools
         uses: ./.github/actions/prepare-for-build
 
+      - name: Print Linux System information
+        if: ${{ runner.os == 'linux' }}
+        run: |
+          df -k
+          mount
+          cat /proc/cpuinfo
+
       - name: Run gradle tests
         run: ./gradlew test "-Ptask.times=true" --max-workers 2
 
