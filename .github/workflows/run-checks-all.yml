@@ -88,10 +88,9 @@ jobs:
         uses: ./.github/actions/prepare-for-build
 
       - name: Print Linux System information
-        if: ${{ runner.os == 'linux' }}
+        if: ${{ runner.os == 'macOS' }}
         run: |
           df -k
           mount
-          cat /proc/cpuinfo
-          echo $TMPDIR
-          echo $XDG_RUNTIME_DIR
+          env
+          sysctl -a
