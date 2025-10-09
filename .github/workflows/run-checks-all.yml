@@ -93,10 +93,9 @@ jobs:
           mkdir /tmp/tmpfs
           sudo mount_tmpfs -o noowners -s 1g /tmp/tmpfs
           echo "tests.workDir=/tmp/tmpfs/lucene" >> build-options.local.properties
-          echo "tests.jvms=2" >> build-options.local.properties
 
       - name: Run gradle tests
-        run: ./gradlew test "-Ptask.times=true" "-Pvalidation.errorprone=false" --max-workers 2
+        run: ./gradlew test "-Ptask.times=true" "-Pvalidation.errorprone=false" "-Ptests.jvms=2" --max-workers 2
 
       - name: List automatically-initialized gradle.properties
         run: cat gradle.properties
