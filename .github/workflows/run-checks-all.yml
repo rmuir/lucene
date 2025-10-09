@@ -93,4 +93,5 @@ jobs:
           df -k
           mount
           cat /proc/cpuinfo
+          echo $TMPDIR
           echo $XDG_RUNTIME_DIR
