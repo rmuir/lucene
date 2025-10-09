@@ -92,6 +92,7 @@ jobs:
         run: |
           mkdir /tmp/tmpfs
           sudo mount_tmpfs -o noowners -s 1g /tmp/tmpfs
+          sudo sysctl debug.lowpri_throttle_enabled=0
           echo "tests.workDir=/tmp/tmpfs/lucene" >> build-options.local.properties
 
       - name: Run gradle tests
@@ -100,7 +101,7 @@ jobs:
       - name: List automatically-initialized gradle.properties
         run: cat gradle.properties
 
-      - name: List temp dir
+      - name: Dump Macos Information
         if: ${{ runner.os == 'macOS' }}
         run: |
-          ls -lR /tmp/tmpfs
+          sysctl -a
