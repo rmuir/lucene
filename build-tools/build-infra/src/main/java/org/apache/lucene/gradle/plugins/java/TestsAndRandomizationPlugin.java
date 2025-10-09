@@ -187,8 +187,8 @@ public class TestsAndRandomizationPlugin extends LuceneGradlePlugin {
                 .provider(
                     () -> {
                       return ((int)
-                          Math.max(
-                              1, Math.min(Runtime.getRuntime().availableProcessors() / 2.0, 4.0)));
+                          Math.round(Math.max(
+                              1, Math.min(Runtime.getRuntime().availableProcessors() / 2.0, 4.0))));
                     }));
 
     // GITHUB#13986: Allow easier configuration of the Panama Vectorization provider with newer Java
