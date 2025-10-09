@@ -96,7 +96,7 @@ jobs:
           echo "tests.jvms=2" >> build-options.local.properties
 
       - name: Run gradle tests
-        run: ./gradlew test "-Ptask.times=true" --max-workers 2
+        run: ./gradlew test "-Ptask.times=true" "-Pvalidation.errorprone=false" --max-workers 2
 
       - name: List automatically-initialized gradle.properties
         run: cat gradle.properties
