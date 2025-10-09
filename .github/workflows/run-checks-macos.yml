@@ -1,0 +1,56 @@
+name: "Run checks on MacOS: all modules"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '44 4 * * 1'
+
+permissions: {}
+
+env:
+  DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+
+# We split the workflow into two parallel jobs for efficiency:
+# one is running all validation checks without tests,
+# the other runs all tests without other validation checks.
+
+jobs:
+  # This runs all tests without any other validation checks.
+  tests:
+    name: tests (JDK ${{ matrix.java }} on ${{ matrix.os }})
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        # Operating systems to run on.
+        os: [ macos-latest ]
+        java: [ '25' ]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+
+      - name: Configure tools
+        uses: ./.github/actions/prepare-for-build
+
+      - name: Speedup MacOS runner
+        if: ${{ runner.os == 'macOS' }}
+        run: |
+          mkdir /tmp/tmpfs
+          sudo mount_tmpfs -o noowners -s 1g /tmp/tmpfs
+          sudo sysctl debug.lowpri_throttle_enabled=0
+          echo "tests.workDir=/tmp/tmpfs/lucene" >> build-options.local.properties
+
+      - name: Run gradle tests
+        run: ./gradlew test "-Ptask.times=true" "-Pvalidation.errorprone=false"
+        env:
+          # Set to the defaults to override the "CI"-based logic that would enable C2
+          # we can't afford C2 on github runners.
+          TEST_JVM_ARGS: "-XX:TieredStopAtLevel=1 -XX:+UseParallelGC -XX:ActiveProcessorCount=1"
+
+      - name: List automatically-initialized gradle.properties
+        run: cat gradle.properties
