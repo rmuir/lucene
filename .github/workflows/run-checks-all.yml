@@ -100,3 +100,8 @@ jobs:
 
       - name: List automatically-initialized gradle.properties
         run: cat gradle.properties
+
+      - name: List temp dir
+        if: ${{ runner.os == 'macOS' }}
+        run: |
+          ls -lR /tmp/tmpfs
