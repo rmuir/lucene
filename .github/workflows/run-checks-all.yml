@@ -91,7 +91,7 @@ jobs:
         if: ${{ runner.os == 'macOS' }}
         run: |
           mkdir /tmp/tmpfs
-          sudo mount_tmpfs -o noowners -s 1g tmpfs /tmp/tmpfs
+          sudo mount_tmpfs -o noowners -s 1g /tmp/tmpfs
           df -k
           mount
           env
