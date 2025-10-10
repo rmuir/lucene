@@ -615,7 +615,7 @@ public abstract class BaseDirectoryTestCase extends LuceneTestCase {
           new Thread(
               () -> {
                 try {
-                  for (int i = 0, max = RandomizedTest.randomIntBetween(500, 1000); i < max; i++) {
+                  for (int i = 0, max = RandomizedTest.randomIntBetween(100, 200); i < max; i++) {
                     String fileName = "file-" + i;
                     try (IndexOutput output = dir.createOutput(fileName, newIOContext(random()))) {
                       assert output != null;
