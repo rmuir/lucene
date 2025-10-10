@@ -32,7 +32,7 @@ public class TestSerializedIOCountingDirectory extends BaseDirectoryTestCase {
 
   @Override
   protected Directory getDirectory(Path path) throws IOException {
-    return new SerialIOCountingDirectory(FSDirectory.open(path));
+    return new SerialIOCountingDirectory(newDirectory());
   }
 
   public void testSequentialReads() throws IOException {
