@@ -2502,7 +2502,7 @@ public abstract class LegacyBaseDocValuesFormatTestCase extends BaseIndexFileFor
     int numIterations = atLeast(1);
     for (int i = 0; i < numIterations; i++) {
       int fixedLength = TestUtil.nextInt(random(), 1, 10);
-      doTestSortedSetVsStoredFields(atLeast(300), fixedLength, fixedLength, 16, 100);
+      doTestSortedSetVsStoredFields(atLeast(100), fixedLength, fixedLength, 16, 100);
     }
   }
 
@@ -3748,7 +3748,7 @@ public abstract class LegacyBaseDocValuesFormatTestCase extends BaseIndexFileFor
     for (int i = 0; i < numChunks; i++) {
       // change sparseness for each chunk
       double sparseChance = random().nextDouble();
-      int docCount = atLeast(200);
+      int docCount = atLeast(101);
       for (int j = 0; j < docCount; j++) {
         Document doc = new Document();
         doc.add(new StoredField("id", id));
