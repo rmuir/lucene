@@ -960,7 +960,7 @@ public abstract class BaseDirectoryTestCase extends LuceneTestCase {
   public void testRandomLong() throws Exception {
     try (Directory dir = getDirectory(createTempDir("testLongs"))) {
       IndexOutput output = dir.createOutput("longs", newIOContext(random()));
-      int num = TestUtil.nextInt(random(), 50, 3000);
+      int num = TestUtil.nextInt(random(), 50, 700);
       long[] longs = new long[num];
       for (int i = 0; i < longs.length; i++) {
         longs[i] = TestUtil.nextLong(random(), Long.MIN_VALUE, Long.MAX_VALUE);

@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import org.apache.lucene.store.DataAccessHint;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.IOContext;
 import org.apache.lucene.store.IndexInput;
 import org.apache.lucene.store.IndexOutput;
