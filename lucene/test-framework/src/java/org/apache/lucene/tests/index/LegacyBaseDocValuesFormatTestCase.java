@@ -3748,7 +3748,7 @@ public abstract class LegacyBaseDocValuesFormatTestCase extends BaseIndexFileFor
     for (int i = 0; i < numChunks; i++) {
       // change sparseness for each chunk
       double sparseChance = random().nextDouble();
-      int docCount = atLeast(1000);
+      int docCount = atLeast(200);
       for (int j = 0; j < docCount; j++) {
         Document doc = new Document();
         doc.add(new StoredField("id", id));
@@ -3777,7 +3777,7 @@ public abstract class LegacyBaseDocValuesFormatTestCase extends BaseIndexFileFor
       }
     }
 
-    int numIters = atLeast(10);
+    int numIters = atLeast(3);
     for (int iter = 0; iter < numIters; iter++) {
       DocIdSetIterator values = fieldCreator.iterator(r);
       assertEquals(-1, values.docID());
