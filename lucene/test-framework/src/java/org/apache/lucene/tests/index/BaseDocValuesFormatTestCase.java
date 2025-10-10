@@ -379,7 +379,7 @@ public abstract class BaseDocValuesFormatTestCase extends LegacyBaseDocValuesFor
   }
 
   public void testNumericDocValuesWithSkipperMedium() throws Exception {
-    doTestNumericDocValuesWithSkipper(random().nextInt(1000, 3000));
+    doTestNumericDocValuesWithSkipper(random().nextInt(1000, 2000));
   }
 
   @Nightly
@@ -439,10 +439,8 @@ public abstract class BaseDocValuesFormatTestCase extends LegacyBaseDocValuesFor
     doTestSortedNumericDocValuesWithSkipper(random().nextInt(1, 1000));
   }
 
-  // TODO: incredibly slow (at least with simpletext)
-  @Nightly
   public void testSortedNumericDocValuesWithSkipperMedium() throws Exception {
-    doTestSortedNumericDocValuesWithSkipper(random().nextInt(1000, 3000));
+    doTestSortedNumericDocValuesWithSkipper(random().nextInt(1000, 2000));
   }
 
   @Nightly
@@ -526,7 +524,7 @@ public abstract class BaseDocValuesFormatTestCase extends LegacyBaseDocValuesFor
   }
 
   public void testSortedDocValuesWithSkipperMedium() throws Exception {
-    doTestSortedDocValuesWithSkipper(random().nextInt(1000, 3000));
+    doTestSortedDocValuesWithSkipper(random().nextInt(1000, 2000));
   }
 
   @Nightly
@@ -587,7 +585,7 @@ public abstract class BaseDocValuesFormatTestCase extends LegacyBaseDocValuesFor
   }
 
   public void testSortedSetDocValuesWithSkipperMedium() throws Exception {
-    doTestSortedSetDocValuesWithSkipper(random().nextInt(1000, 3000));
+    doTestSortedSetDocValuesWithSkipper(random().nextInt(1000, 2000));
   }
 
   @Nightly
