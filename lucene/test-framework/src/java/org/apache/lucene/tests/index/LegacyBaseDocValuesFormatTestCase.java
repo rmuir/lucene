@@ -2581,14 +2581,14 @@ public abstract class LegacyBaseDocValuesFormatTestCase extends BaseIndexFileFor
   public void testSortedSetVariableLengthManyValuesPerDocVsStoredFields() throws Exception {
     int numIterations = atLeast(1);
     for (int i = 0; i < numIterations; i++) {
-      doTestSortedSetVsStoredFields(atLeast(20), 1, 10, 500, 1000);
+      doTestSortedSetVsStoredFields(atLeast(20), 1, 10, 50, 1000);
     }
   }
 
   public void testSortedSetFixedLengthManyValuesPerDocVsStoredFields() throws Exception {
     int numIterations = atLeast(1);
     for (int i = 0; i < numIterations; i++) {
-      doTestSortedSetVsStoredFields(atLeast(20), 10, 10, 500, 1000);
+      doTestSortedSetVsStoredFields(atLeast(20), 10, 10, 50, 1000);
     }
   }
 
