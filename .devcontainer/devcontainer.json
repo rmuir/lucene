@@ -2,7 +2,14 @@
   "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
   "name": "Apache Lucene",
   "service": "lucene",
-  "image:": "mcr.microsoft.com/devcontainers/java:latest",
+  "image:": "mcr.microsoft.com/devcontainers/java:3.0-25",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "none",
+      "installMaven": "false",
+      "installGradle": "false"
+    }
+  },
   "overrideCommand": true,
   "customizations": {
     "vscode": {
