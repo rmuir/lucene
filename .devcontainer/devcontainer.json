@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+  "name": "Apache Lucene",
+  "service": "lucene",
+  "image:": "mcr.microsoft.com/devcontainers/java:latest",
+  "overrideCommand": true,
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "redhat.java",
+        "editorconfig.editorconfig",
+        "ast-grep.ast-grep-vscode"
+      ],
+      "settings": {
+        "extensions.allowed": {
+          "vscjava.vscode-java-pack": false,
+          "vscjava.vscode-gradle": false,
+          "*": true
+        }
+      }
+    }
+  },
+  "updateContentCommand": "cd ${containerWorkspaceFolder} && rm -f .classpath && ./gradlew eclipse"
+}
