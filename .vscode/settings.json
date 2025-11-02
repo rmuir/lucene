@@ -1,4 +1,5 @@
 {
+  "java.server.launchMode": "Standard",
   "java.import.gradle.enabled": false,
   "java.import.maven.enabled": false,
   "java.jdt.ls.lombokSupport.enabled": false,
@@ -8,6 +9,5 @@
   "java.inlayHints.parameterNames.enabled": "all",
   "java.inlayHints.parameterTypes.enabled": true,
   "java.inlayHints.variableTypes.enabled": true,
-  "astGrep.configPath": "${workspaceFolder}/gradle/validation/ast-grep/sgconfig.yml",
   "redhat.telemetry.enabled": false
 }
