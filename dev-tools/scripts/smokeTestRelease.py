@@ -103,7 +103,7 @@ def getHREFs(urlString: str):
   return links
 
 
-def load(urlString: str):
+def load(urlStringOther: str):
   try:
     content = urllib.request.urlopen(urlString).read().decode("utf-8")
   except Exception as e:
